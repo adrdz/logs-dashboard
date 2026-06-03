@@ -33,10 +33,17 @@ interface Props {
   onChange: (values: FilterValues) => void;
   sources?: string[];
   showSearch?: boolean;
+  showSeverity?: boolean;
 }
 //#endregion
 
-export default function Filters({ values, onChange, sources = [], showSearch = false }: Props) {
+export default function Filters({
+  values,
+  onChange,
+  sources = [],
+  showSearch = false,
+  showSeverity = false,
+}: Props) {
   //#region Handlers
   const handleChange = (key: keyof FilterValues, value: unknown) => {
     onChange({ ...values, [key]: value || undefined });
@@ -75,24 +82,26 @@ export default function Filters({ values, onChange, sources = [], showSearch = f
             slotProps={{ textField: { size: "small" } }}
           />
 
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel id="filters-severity-label">Severity</InputLabel>
-            <Select
-              labelId="filters-severity-label"
-              id="filters-severity"
-              multiple
-              value={values.severity ?? []}
-              onChange={(e) => handleChange("severity", e.target.value)}
-              input={<OutlinedInput label="Severity" />}
-              renderValue={(selected) => (selected as string[]).join(", ")}
-            >
-              {SEVERITIES.map((s) => (
-                <MenuItem key={s} value={s}>
-                  {s}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          {showSeverity && (
+            <FormControl size="small" sx={{ minWidth: 160 }}>
+              <InputLabel id="filters-severity-label">Severity</InputLabel>
+              <Select
+                labelId="filters-severity-label"
+                id="filters-severity"
+                multiple
+                value={values.severity ?? []}
+                onChange={(e) => handleChange("severity", e.target.value)}
+                input={<OutlinedInput label="Severity" />}
+                renderValue={(selected) => (selected as string[]).join(", ")}
+              >
+                {SEVERITIES.map((s) => (
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
           {sources.length > 0 && (
             <FormControl size="small" sx={{ minWidth: 160 }}>
@@ -116,9 +125,8 @@ export default function Filters({ values, onChange, sources = [], showSearch = f
 
           <Button
             variant="outlined"
-            size="small"
             onClick={() => onChange({})}
-            sx={{ alignSelf: "center" }}
+            sx={{ alignSelf: "flex-start", height: 40 }}
           >
             Reset
           </Button>

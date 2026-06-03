@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Dashboard page", () => {
+test.describe("Summary page", () => {
   test("renders summary cards, filters and both charts", async ({ page }) => {
-    await page.goto("/dashboard");
+    await page.goto("/");
 
-    await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Summary" })).toBeVisible();
     await expect(page.getByText("Filters")).toBeVisible();
 
     // Summary cards populate from the analytics summary endpoint.
@@ -17,8 +17,14 @@ test.describe("Dashboard page", () => {
     await expect(page.locator("svg").first()).toBeVisible();
   });
 
+  test("severity filter is not offered on the Summary page", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByText("Filters")).toBeVisible();
+    await expect(page.getByLabel(/severity/i)).toHaveCount(0);
+  });
+
   test("changing the interval keeps the trend chart rendered", async ({ page }) => {
-    await page.goto("/dashboard");
+    await page.goto("/");
     await expect(page.getByText(/log trend over time/i)).toBeVisible({ timeout: 15_000 });
 
     await page.getByLabel("Interval").click();
@@ -28,7 +34,7 @@ test.describe("Dashboard page", () => {
   });
 
   test("toggling group-by to source updates the trend chart", async ({ page }) => {
-    await page.goto("/dashboard");
+    await page.goto("/");
     await expect(page.getByRole("button", { name: /by source/i })).toBeVisible({ timeout: 15_000 });
 
     await page.getByRole("button", { name: /by source/i }).click();

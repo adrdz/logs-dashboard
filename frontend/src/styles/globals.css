@@ -17,3 +17,11 @@ body {
   min-height: calc(100vh - 64px);
   padding: var(--space-lg);
 }
+
+/* Offset the main content for the fixed desktop sidebar (240px). On mobile the
+   sidebar collapses into the header menu, so no offset is applied. */
+@media (min-width: 768px) {
+  .app-main {
+    margin-left: 240px;
+  }
+}

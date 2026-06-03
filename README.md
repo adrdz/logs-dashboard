@@ -28,7 +28,7 @@ docker compose up --build
 
 On first boot the backend container automatically:
 1. Runs Alembic migrations to create the schema
-2. Seeds ~5 000 realistic log entries across the last 30 days
+2. Seeds ~3 000 realistic log entries across the last 30 days
 
 ---
 
@@ -171,7 +171,7 @@ App Router's server/client component split is the right model going forward. All
 Shared components are organized into domain folders (`layout/`, `form/`, `info/`). Each domain's `index.ts` barrel exports with a prefix (`FormLogs`, `ChipSeverity`, `ChartTrend`). Large pages are decomposed into view-local `_components/` files named for their role: composites use `Section*`/`Panel*`; single widgets are named for what they are (`TableLogs`).
 
 **Styling: hybrid CSS tokens + BEM / MUI**
-A `styles/tokens.css` file defines CSS custom properties for colors, spacing, and severity scale, with a `[data-theme="dark"]` override block. Simple components (navbar, chips, metric cards) use plain BEM CSS consuming these tokens. Complex widgets (DataGrid, X-Charts, date-pickers) stay on MUI. The MUI theme palette mirrors the token values. A `ThemeToggle` in the navbar persists the user's preference and drives both the CSS tokens and the MUI theme simultaneously.
+A `styles/tokens.css` file defines CSS custom properties for colors, spacing, and severity scale, with a `[data-theme="dark"]` override block. Simple components (the app shell — header/sidebar/mobile menu — chips, metric cards) use plain BEM CSS consuming these tokens. Complex widgets (DataGrid, X-Charts, date-pickers) stay on MUI. The MUI theme palette mirrors the token values. A `ThemeToggle` in the header (and inside the mobile menu) persists the user's preference and drives both the CSS tokens and the MUI theme simultaneously.
 
 **TanStack Query**
 Handles caching, deduplication, loading/error states, and cache invalidation after mutations. The `queryKey` hierarchy (`["logs", "list", params]`) ensures creating or deleting a log invalidates the list without refetching unrelated queries.
@@ -195,7 +195,7 @@ Rather than maintaining parallel RTL test files, each component's functional tes
 | **Severity histogram** | `GET /api/analytics/histogram` + `SeverityHistogram` bar chart on the dashboard. |
 | **Tests** | Backend: pytest integration tests (SQLite, transaction isolation). Frontend: component tests as Storybook stories run in real Chromium via Playwright (`@storybook/addon-vitest`), plus Playwright `e2e/` view flows. |
 | **Storybook** | Component catalog (`@storybook/nextjs-vite`) with a light/dark toolbar; stories double as the functional test suite. |
-| **Seed data** | `scripts/seed.py` generates 5 000 realistic entries across 6 sources and 30 days, weighted severity distribution. |
+| **Seed data** | `scripts/seed.py` generates 3 000 realistic entries across 6 sources and 30 days, weighted severity distribution. |
 
 ---
 
@@ -248,10 +248,13 @@ Rather than maintaining parallel RTL test files, each component's functional tes
     ├── src/
     │   ├── styles/           # tokens.css (design tokens), globals.css
     │   ├── app/              # Next.js App Router pages + providers.tsx
-    │   │   ├── dashboard/_components/  # SectionSummary/, SectionTrend.tsx
+    │   │   ├── page.tsx                # "/" Summary (analytics dashboard)
+    │   │   ├── about/                  # "/about" static page
+    │   │   ├── _components/            # SectionSummary/, SectionTrend.tsx
     │   │   └── logs/_components/       # TableLogs.tsx
     │   ├── components/
-    │   │   ├── layout/       # NavBar/, ThemeToggle/
+    │   │   ├── layout/       # AppShell/, Header/, Sidebar/, MobileMenu/, ThemeToggle/
+    │   │   ├── modal/        # ModalBase/, ModalCreateLog/
     │   │   ├── form/         # Logs/, Filters/
     │   │   └── info/         # chip/Severity, chart/Trend+Histogram
     │   └── lib/              # api, hooks (+ useDebounce), theme, types, constants

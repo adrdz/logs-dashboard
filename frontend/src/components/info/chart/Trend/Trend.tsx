@@ -97,10 +97,17 @@ export default function Trend({ data, isLoading, groupBy, onGroupByChange }: Pro
             label: s.label,
             color: s.color,
             curve: "linear",
+            // Stop the per-point highlight mark from growing/redrawing on hover
+            // (the "flickering" the nodes showed). Tooltip still works.
+            highlightScope: { highlight: "none", fade: "global" },
           }))}
-          height={280}
-          margin={{ top: 20, right: 20, bottom: 50, left: 50 }}
-          slotProps={{ legend: { position: { vertical: "bottom", horizontal: "middle" } } }}
+          height={300}
+          // Wider left margin so y-axis values aren't clipped; taller bottom
+          // margin so the legend sits clearly below the x-axis date labels.
+          margin={{ top: 20, right: 20, bottom: 72, left: 64 }}
+          slotProps={{
+            legend: { position: { vertical: "bottom", horizontal: "middle" }, padding: 0 },
+          }}
         />
       )}
     </Paper>

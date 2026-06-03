@@ -86,6 +86,8 @@ export default function Logs({
           helperText={errors.message}
           required
           inputProps={{ maxLength: 10000 }}
+          // Keep the textarea on the theme surface (no white box in dark mode).
+          sx={{ "& .MuiInputBase-root": { backgroundColor: "background.paper" } }}
         />
 
         <FormControl error={!!errors.severity}>
@@ -128,6 +130,8 @@ export default function Logs({
           label="Timestamp (optional — defaults to now)"
           value={timestamp}
           onChange={(v) => setTimestamp(v)}
+          disableFuture
+          maxDateTime={dayjs()}
           slotProps={{ textField: { fullWidth: true } }}
         />
 

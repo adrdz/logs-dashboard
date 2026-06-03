@@ -18,21 +18,22 @@ src/
 │   ├── tokens.css          # CSS design tokens (:root + [data-theme="dark"])
 │   └── globals.css         # imports tokens; base body + .app-main
 ├── app/
-│   ├── layout.tsx          # root layout — anti-FOUC script, NavBar, Providers
+│   ├── layout.tsx          # root layout — anti-FOUC script, AppShell, Providers
 │   ├── providers.tsx       # QueryClient + ThemeMode context + MUI ThemeProvider
-│   ├── dashboard/
-│   │   ├── page.tsx
-│   │   └── _components/
-│   │       ├── SectionSummary/   # composite: cards block
-│   │       └── SectionTrend/     # composite: interval controls + trend chart
+│   ├── page.tsx            # "/" Summary (analytics dashboard)
+│   ├── _components/        # Summary page view-local components
+│   │   ├── SectionSummary/   # composite: cards block
+│   │   └── SectionTrend/     # composite: interval controls + trend chart
+│   ├── about/
+│   │   └── page.tsx        # "/about" static page
 │   └── logs/
 │       ├── page.tsx
 │       ├── _components/
 │       │   └── TableLogs/        # single widget: DataGrid
-│       ├── new/page.tsx
 │       └── [id]/page.tsx
 ├── components/
-│   ├── layout/             # chrome / navigation components — NavBar/, ThemeToggle/
+│   ├── layout/             # app shell / nav — AppShell/, Header/, Sidebar/, MobileMenu/, ThemeToggle/
+│   ├── modal/              # ModalBase/, ModalCreateLog/
 │   ├── form/               # input-collection components — Logs/, Filters/
 │   └── info/               # display / data-visualization components
 │       ├── chip/
@@ -119,7 +120,7 @@ after what they are:
 app/logs/_components/
 └── TableLogs/               ← single widget (DataGrid), named for what it is
 
-app/dashboard/_components/
+app/_components/             ← Summary page ("/") view-local components
 ├── SectionSummary/          ← composite: summary cards block
 └── SectionTrend/            ← composite: interval controls + trend chart
 ```
@@ -164,13 +165,13 @@ export default function Component(props: Props) {
 
 ### Approach: hybrid (CSS tokens + BEM for simple components; MUI for complex widgets)
 
-Simple, custom components (navbar, chips, cards, toggles) are styled with
-**plain CSS + BEM**, colocated with the component:
+Simple, custom components (header, sidebar, mobile menu, chips, cards, toggles)
+are styled with **plain CSS + BEM**, colocated with the component:
 
 ```
-layout/NavBar/
-├── NavBar.tsx
-├── NavBar.css    ← colocated BEM stylesheet
+layout/Sidebar/
+├── Sidebar.tsx
+├── Sidebar.css    ← colocated BEM stylesheet
 └── index.ts
 ```
 
@@ -181,9 +182,9 @@ elements — use BEM CSS instead.
 ### BEM convention
 
 ```css
-.navbar {}             /* Block */
-.navbar__link {}       /* Element */
-.navbar__link--active {}  /* Modifier */
+.sidebar {}               /* Block */
+.sidebar__link {}         /* Element */
+.sidebar__link--active {} /* Modifier */
 ```
 
 ### Design tokens
@@ -211,7 +212,7 @@ elements — use BEM CSS instead.
 
 ## Dark theme
 
-The theme toggle in the navbar flips between light and dark mode. It:
+The theme toggle in the header (and inside the mobile menu) flips between light and dark mode. It:
 
 1. Persists the choice to `localStorage`.
 2. Sets `data-theme="dark"` on `<html>`, activating the `[data-theme="dark"]`
@@ -233,9 +234,12 @@ const { mode, toggle } = useThemeMode();
 
 ## Forms and filters
 
-`FormLogs` — create/edit a log entry (MUI TextField, Select, DateTimePicker).  
-`FormFilters` — filter panel used on `/logs` and `/dashboard`. Exports the
-`FilterValues` type alongside the component:
+`FormLogs` — create/edit a log entry (MUI TextField, Select, DateTimePicker). On
+the Logs List it is hosted in `ModalCreateLog` (built on the reusable
+`ModalBase`); it is also reused for inline editing on the log detail page.  
+`FormFilters` — filter panel used on `/logs` and `/` (Summary). The severity
+control is opt-in via `showSeverity` (shown on the Logs List, hidden on Summary).
+Exports the `FilterValues` type alongside the component:
 
 ```ts
 import { FormFilters, type FilterValues } from "@/components/form";

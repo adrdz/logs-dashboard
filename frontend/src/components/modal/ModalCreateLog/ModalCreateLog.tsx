@@ -3,30 +3,39 @@
 //#region Imports
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
-import Breadcrumbs from "@mui/material/Breadcrumbs";
-import Link from "@mui/material/Link";
-import Typography from "@mui/material/Typography";
-import NextLink from "next/link";
-import { useRouter } from "next/navigation";
 import { FormLogs } from "@/components/form";
 import { useCreateLog } from "@/lib/hooks";
-import type { LogCreate } from "@/lib/types";
+import type { Log, LogCreate } from "@/lib/types";
+import { ModalBase } from "../ModalBase";
 //#endregion
 
-export default function NewLogPage() {
+//#region Types
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  /** Called after a log is successfully created (e.g. to navigate to it). */
+  onCreated?: (log: Log) => void;
+}
+//#endregion
+
+export default function ModalCreateLog({ open, onClose, onCreated }: Props) {
   //#region State
-  const router = useRouter();
   const { mutateAsync, isPending } = useCreateLog();
   const [error, setError] = useState<string | null>(null);
   //#endregion
 
   //#region Handlers
+  const handleClose = () => {
+    setError(null);
+    onClose();
+  };
+
   const handleSubmit = async (data: LogCreate) => {
     setError(null);
     try {
       const log = await mutateAsync(data);
-      router.push(`/logs/${log.id}`);
+      onCreated?.(log);
+      handleClose();
     } catch (err) {
       setError((err as Error).message);
     }
@@ -35,26 +44,14 @@ export default function NewLogPage() {
 
   //#region Render
   return (
-    <Box>
-      <Breadcrumbs sx={{ mb: 2 }}>
-        <Link component={NextLink} href="/logs" underline="hover" color="inherit">
-          Logs
-        </Link>
-        <Typography color="text.primary">New Log</Typography>
-      </Breadcrumbs>
-
-      <Typography variant="h5" fontWeight={700} sx={{ mb: 3 }}>
-        Create Log Entry
-      </Typography>
-
+    <ModalBase open={open} onClose={handleClose} title="Create Log Entry">
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-
       <FormLogs onSubmit={handleSubmit} isLoading={isPending} submitLabel="Create Log" />
-    </Box>
+    </ModalBase>
   );
   //#endregion
 }

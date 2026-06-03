@@ -10,16 +10,20 @@ test("creates, edits and deletes a log entry", async ({ page }) => {
   const message = `E2E created ${stamp}`;
   const editedMessage = `E2E edited ${stamp}`;
 
-  // ── Create ────────────────────────────────────────────────────────────
-  await page.goto("/logs/new");
-  await expect(page.getByRole("heading", { name: /create log entry/i })).toBeVisible();
+  // ── Create (via the modal on the Logs List) ───────────────────────────
+  await page.goto("/logs");
+  await page.getByRole("button", { name: /new log/i }).click();
 
-  await page.getByLabel(/message/i).fill(message);
-  await page.getByLabel(/severity/i).click();
+  const createDialog = page.getByRole("dialog");
+  await expect(createDialog.getByRole("heading", { name: /create log entry/i })).toBeVisible();
+
+  // Scope form fields to the dialog (the list behind it also has a search box).
+  await createDialog.getByLabel(/message/i).fill(message);
+  await createDialog.getByLabel(/severity/i).click();
   await page.getByRole("option", { name: "ERROR" }).click();
-  await page.getByLabel(/source/i).click();
+  await createDialog.getByLabel(/source/i).click();
   await page.getByRole("option", { name: "auth-service" }).click();
-  await page.getByRole("button", { name: /create log/i }).click();
+  await createDialog.getByRole("button", { name: /create log/i }).click();
 
   // Lands on the new detail page showing the created content.
   await expect(page).toHaveURL(/\/logs\/\d+$/);

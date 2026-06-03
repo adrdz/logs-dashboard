@@ -26,23 +26,24 @@ def _to_log_query_params(params: AnalyticsQueryParams) -> LogQueryParams:
 
 
 async def get_summary(db: AsyncSession, params: AnalyticsQueryParams) -> AnalyticsSummary:
-    base = apply_log_filters(select(Log), _to_log_query_params(params))
+    # Aggregate over the filtered rows. We group by the subquery's own columns
+    # (not Log.*) — referencing Log.severity here would re-add the `logs` table
+    # to the FROM clause and produce a cartesian product with the subquery.
+    subq = apply_log_filters(select(Log), _to_log_query_params(params)).subquery()
 
-    total_stmt = select(func.count()).select_from(base.subquery())
+    total_stmt = select(func.count()).select_from(subq)
     total = (await db.execute(total_stmt)).scalar_one()
 
     sev_stmt = (
-        select(Log.severity, func.count().label("cnt"))
-        .select_from(base.subquery())
-        .group_by(Log.severity)
+        select(subq.c.severity, func.count().label("cnt"))
+        .group_by(subq.c.severity)
     )
     sev_rows = (await db.execute(sev_stmt)).all()
     by_severity = [SeverityCount(severity=row.severity, count=row.cnt) for row in sev_rows]
 
     src_stmt = (
-        select(Log.source, func.count().label("cnt"))
-        .select_from(base.subquery())
-        .group_by(Log.source)
+        select(subq.c.source, func.count().label("cnt"))
+        .group_by(subq.c.source)
         .order_by(func.count().desc())
         .limit(20)
     )
@@ -55,18 +56,17 @@ async def get_summary(db: AsyncSession, params: AnalyticsQueryParams) -> Analyti
 async def get_timeseries(
     db: AsyncSession, params: AnalyticsQueryParams
 ) -> TimeseriesResponse:
-    trunc_expr = func.date_trunc(params.interval, Log.timestamp).label("bucket")
+    subq = apply_log_filters(select(Log), _to_log_query_params(params)).subquery()
+
+    trunc_expr = func.date_trunc(params.interval, subq.c.timestamp).label("bucket")
 
     if params.group_by == "severity":
-        label_col = Log.severity.cast(String).label("label")
+        label_col = subq.c.severity.cast(String).label("label")
     else:
-        label_col = Log.source.label("label")
-
-    base = apply_log_filters(select(Log), _to_log_query_params(params))
+        label_col = subq.c.source.label("label")
 
     stmt = (
         select(trunc_expr, label_col, func.count().label("cnt"))
-        .select_from(base.subquery())
         .group_by(text("bucket"), label_col)
         .order_by(text("bucket"))
     )
@@ -80,12 +80,11 @@ async def get_timeseries(
 
 
 async def get_histogram(db: AsyncSession, params: AnalyticsQueryParams) -> HistogramResponse:
-    base = apply_log_filters(select(Log), _to_log_query_params(params))
+    subq = apply_log_filters(select(Log), _to_log_query_params(params)).subquery()
 
     stmt = (
-        select(Log.severity, func.count().label("cnt"))
-        .select_from(base.subquery())
-        .group_by(Log.severity)
+        select(subq.c.severity, func.count().label("cnt"))
+        .group_by(subq.c.severity)
     )
     rows = (await db.execute(stmt)).all()
 

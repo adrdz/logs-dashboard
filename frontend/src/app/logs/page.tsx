@@ -9,9 +9,9 @@ import Typography from "@mui/material/Typography";
 import DownloadIcon from "@mui/icons-material/Download";
 import AddIcon from "@mui/icons-material/Add";
 import { type GridSortModel } from "@mui/x-data-grid";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormFilters, type FilterValues } from "@/components/form";
+import { ModalCreateLog } from "@/components/modal";
 import TableLogs from "./_components/TableLogs";
 import { useLogs, useDebounce } from "@/lib/hooks";
 import { logsApi } from "@/lib/api";
@@ -25,6 +25,7 @@ export default function LogsPage() {
   const [filters, setFilters] = useState<FilterValues>({});
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: "timestamp", sort: "desc" }]);
+  const [createOpen, setCreateOpen] = useState(false);
   //#endregion
 
   //#region Derived
@@ -54,19 +55,19 @@ export default function LogsPage() {
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
         <Typography variant="h5" fontWeight={700}>
-          Logs
+          Logs List
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
           <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleExport} size="small">
             Export CSV
           </Button>
-          <Button variant="contained" startIcon={<AddIcon />} component={Link} href="/logs/new" size="small">
+          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setCreateOpen(true)} size="small">
             New Log
           </Button>
         </Box>
       </Box>
 
-      <FormFilters values={filters} onChange={setFilters} sources={SOURCES} showSearch />
+      <FormFilters values={filters} onChange={setFilters} sources={SOURCES} showSearch showSeverity />
 
       {isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -83,6 +84,12 @@ export default function LogsPage() {
         sortModel={sortModel}
         onSortModelChange={setSortModel}
         onRowClick={(id) => router.push(`/logs/${id}`)}
+      />
+
+      <ModalCreateLog
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        onCreated={(log) => router.push(`/logs/${log.id}`)}
       />
     </Box>
   );

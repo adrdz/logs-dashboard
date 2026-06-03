@@ -1,0 +1,77 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  padding: 0 var(--space-lg);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header__brand {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* Hamburger button — hidden on desktop, where the sidebar handles nav. */
+.header__burger {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .header__theme-desktop {
+    display: none;
+  }
+
+  .header__burger {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    background-color: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    /* Stay above the full-screen overlay so it remains clickable as the X. */
+    z-index: 1400;
+  }
+
+  .header__burger-bar {
+    display: block;
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-primary);
+    border-radius: 2px;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+  }
+
+  /* Morph the three bars into an X (bar pitch is 2px bar + 5px gap = 7px). */
+  .header__burger--open .header__burger-bar:nth-child(1) {
+    transform: translateY(7px) rotate(45deg);
+  }
+
+  .header__burger--open .header__burger-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .header__burger--open .header__burger-bar:nth-child(3) {
+    transform: translateY(-7px) rotate(-45deg);
+  }
+}

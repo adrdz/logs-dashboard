@@ -122,6 +122,16 @@ class TestListLogs:
         items = resp.json()["items"]
         assert any("unique-xyz" in item["message"] for item in items)
 
+    async def test_sort_by_supported_column(self, client: AsyncClient, log_payload):
+        await client.post("/api/logs", json=log_payload)
+        resp = await client.get("/api/logs?sort_by=severity&order=asc")
+        assert resp.status_code == 200
+
+    async def test_sort_by_message_rejected(self, client: AsyncClient):
+        # The UI disables sorting on `message`; the API contract rejects it too.
+        resp = await client.get("/api/logs?sort_by=message")
+        assert resp.status_code == 422
+
     async def test_invalid_date_range_returns_422(self, client: AsyncClient):
         resp = await client.get("/api/logs?start=2024-12-31T00:00:00Z&end=2024-01-01T00:00:00Z")
         assert resp.status_code == 422

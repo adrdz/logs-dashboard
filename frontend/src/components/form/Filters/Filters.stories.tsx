@@ -19,6 +19,27 @@ export const WithSearchAndSources: Story = {
   args: { showSearch: true, sources: SOURCES },
 };
 
+export const WithSeverity: Story = {
+  args: { showSeverity: true },
+};
+
+// Functional: the severity filter only appears when showSeverity is set (shown
+// on the Logs List, hidden on the Summary page).
+export const SeverityShownWhenEnabled: Story = {
+  args: { showSeverity: true },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.getByLabelText(/severity/i)).toBeInTheDocument();
+  },
+};
+
+export const SeverityHiddenByDefault: Story = {
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    await expect(canvas.queryByLabelText(/severity/i)).not.toBeInTheDocument();
+  },
+};
+
 // Functional: search field only appears when showSearch is set.
 export const SearchShownWhenEnabled: Story = {
   args: { showSearch: true },

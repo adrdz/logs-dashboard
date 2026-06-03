@@ -1,0 +1,75 @@
+.mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  /* Keep mounted (so the slide transition runs) but inert when closed. */
+  visibility: hidden;
+  transition: visibility 0s linear 0.3s;
+}
+
+.mobile-menu--open {
+  visibility: visible;
+  transition: visibility 0s;
+}
+
+.mobile-menu__panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  /* Clear the sticky header so the close (X) button stays visible/clickable. */
+  padding: calc(64px + var(--space-lg)) var(--space-lg) var(--space-lg);
+  background-color: var(--bg-primary);
+  /* Slides in from the right. */
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+}
+
+.mobile-menu--open .mobile-menu__panel {
+  transform: translateX(0);
+}
+
+.mobile-menu__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 14px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mobile-menu__link:hover {
+  background-color: var(--bg-secondary);
+}
+
+.mobile-menu__link--active {
+  color: var(--color-primary);
+  background-color: var(--bg-secondary);
+}
+
+.mobile-menu__theme {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: var(--space-md);
+  padding: var(--space-md) 12px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.mobile-menu__theme-label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* The overlay is a mobile-only affordance. */
+@media (min-width: 768px) {
+  .mobile-menu {
+    display: none;
+  }
+}

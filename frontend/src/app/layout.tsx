@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { NavBar } from "@/components/layout/NavBar";
+import { AppShell } from "@/components/layout/AppShell";
 import Providers from "./providers";
 import "@/styles/globals.css";
 
@@ -18,8 +18,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <Providers>
-          <NavBar />
-          <main className="app-main">{children}</main>
+          <AppShell>{children}</AppShell>
         </Providers>
       </body>
     </html>

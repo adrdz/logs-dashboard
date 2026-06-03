@@ -4,9 +4,9 @@ test.describe("Logs list page", () => {
   test("renders the toolbar, filters and a populated grid", async ({ page }) => {
     await page.goto("/logs");
 
-    await expect(page.getByRole("heading", { name: "Logs" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Logs List" })).toBeVisible();
     await expect(page.getByRole("button", { name: /export csv/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /new log/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /new log/i })).toBeVisible();
 
     // Filter panel.
     await expect(page.getByText("Filters")).toBeVisible();

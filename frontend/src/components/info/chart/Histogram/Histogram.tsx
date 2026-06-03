@@ -52,7 +52,8 @@ export default function Histogram({ data, isLoading }: Props) {
           }]}
           series={[{ data: counts, label: "Count" }]}
           height={240}
-          margin={{ top: 10, right: 10, bottom: 40, left: 50 }}
+          // Wider left margin so larger y-axis values aren't clipped.
+          margin={{ top: 10, right: 10, bottom: 40, left: 64 }}
           slotProps={{ legend: { hidden: true } }}
         />
       )}

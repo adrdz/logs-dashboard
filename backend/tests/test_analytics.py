@@ -25,20 +25,36 @@ class TestSummary:
         assert "total" in data
         assert "by_severity" in data
         assert "by_source" in data
-        assert data["total"] >= 5
+        # Exactly the 5 seeded logs.
+        assert data["total"] == 5
+
+    async def test_severity_counts_sum_to_total(self, client: AsyncClient):
+        """Regression: a cartesian join used to inflate per-severity counts to
+        (rows × total). The grouped counts must sum back to `total`."""
+        resp = await client.get("/api/analytics/summary")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert sum(s["count"] for s in data["by_severity"]) == data["total"]
+        assert sum(s["count"] for s in data["by_source"]) == data["total"]
+        counts = {s["severity"]: s["count"] for s in data["by_severity"]}
+        assert counts["INFO"] == 2
+        assert counts["ERROR"] == 1
+        assert counts["WARNING"] == 1
+        assert counts["CRITICAL"] == 1
 
     async def test_severity_filter(self, client: AsyncClient):
         resp = await client.get("/api/analytics/summary?severity=ERROR")
         assert resp.status_code == 200
         data = resp.json()
-        assert data["total"] >= 1
+        assert data["total"] == 1
 
     async def test_source_filter(self, client: AsyncClient):
         resp = await client.get("/api/analytics/summary?source=auth-service")
         assert resp.status_code == 200
         data = resp.json()
         # auth-service has INFO, INFO, WARNING = 3
-        assert data["total"] >= 3
+        assert data["total"] == 3
+        assert sum(s["count"] for s in data["by_severity"]) == 3
 
     async def test_invalid_date_range_returns_422(self, client: AsyncClient):
         resp = await client.get("/api/analytics/summary?start=2030-01-01T00:00:00Z&end=2020-01-01T00:00:00Z")
@@ -70,5 +86,9 @@ class TestHistogram:
         resp = await client.get("/api/analytics/histogram?source=auth-service")
         assert resp.status_code == 200
         data = resp.json()
-        info_bar = next(b for b in data["data"] if b["severity"] == "INFO")
-        assert info_bar["count"] >= 2
+        counts = {b["severity"]: b["count"] for b in data["data"]}
+        # auth-service: INFO×2, WARNING×1 (exact — a cartesian join previously
+        # inflated these to rows × total).
+        assert counts["INFO"] == 2
+        assert counts["WARNING"] == 1
+        assert counts["ERROR"] == 0

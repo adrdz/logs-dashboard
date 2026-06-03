@@ -1,5 +1,5 @@
 """
-Seed script: generates ~5000 realistic log entries spread across the last 30 days.
+Seed script: generates ~3000 realistic log entries spread across the last 30 days.
 Run: python scripts/seed.py [--reset]
 """
 import argparse
@@ -121,7 +121,7 @@ async def seed(reset: bool = False, skip_if_seeded: bool = False) -> None:
 
         now = datetime.now(timezone.utc)
         logs = []
-        for _ in range(5000):
+        for _ in range(3000):
             severity = weighted_choice(SEVERITY_WEIGHTS)
             source = random.choice(SOURCES)
             ts = now - timedelta(

@@ -13,7 +13,7 @@ const sample: AnalyticsSummary = {
 };
 
 const meta = {
-  title: "Dashboard/SectionSummary",
+  title: "Summary/SectionSummary",
   component: SectionSummary,
   args: { summary: sample },
   parameters: { layout: "padded" },

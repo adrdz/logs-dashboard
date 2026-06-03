@@ -14,7 +14,7 @@ const sample: TimeseriesResponse = {
 };
 
 const meta = {
-  title: "Dashboard/SectionTrend",
+  title: "Summary/SectionTrend",
   component: SectionTrend,
   args: {
     data: sample,

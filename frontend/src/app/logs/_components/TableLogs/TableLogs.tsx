@@ -35,7 +35,8 @@ const COLUMNS: GridColDef[] = [
     renderCell: (params) => <ChipSeverity severity={params.value as Severity} />,
   },
   { field: "source", headerName: "Source", width: 170 },
-  { field: "message", headerName: "Message", flex: 1, minWidth: 300 },
+  // Not sortable: the backend only supports sorting by timestamp/severity/source/created_at.
+  { field: "message", headerName: "Message", flex: 1, minWidth: 300, sortable: false },
 ];
 //#endregion
 
