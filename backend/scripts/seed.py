@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.models import Log, Severity
+from app.logs.models import Log, Severity
 
 SOURCES = [
     "auth-service",
@@ -100,12 +100,20 @@ def weighted_choice(choices):
     return random.choices(items, weights=weights, k=1)[0]
 
 
-async def seed(reset: bool = False) -> None:
+async def seed(reset: bool = False, skip_if_seeded: bool = False) -> None:
     db_url = os.getenv("DATABASE_URL", "postgresql+asyncpg://loguser:logpassword@localhost:5432/logsdb")
     engine = create_async_engine(db_url, echo=False)
     factory = async_sessionmaker(engine, expire_on_commit=False)
 
     async with factory() as session:
+        if skip_if_seeded:
+            result = await session.execute(text("SELECT COUNT(*) FROM logs"))
+            count = result.scalar()
+            if count and count > 0:
+                print(f"Database already has {count} logs — skipping seed.")
+                await engine.dispose()
+                return
+
         if reset:
             await session.execute(delete(Log))
             await session.commit()
@@ -138,5 +146,6 @@ async def seed(reset: bool = False) -> None:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--reset", action="store_true", help="Delete existing logs before seeding")
+    parser.add_argument("--skip-if-seeded", action="store_true", help="No-op if the table already has rows")
     args = parser.parse_args()
-    asyncio.run(seed(reset=args.reset))
+    asyncio.run(seed(reset=args.reset, skip_if_seeded=args.skip_if_seeded))

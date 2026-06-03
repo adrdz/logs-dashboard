@@ -3,7 +3,8 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from app.database import Base, get_db
+import app.logs.models  # noqa: F401 — registers Log with Base.metadata
+from app.core.database import Base, get_db
 from app.main import app
 
 # Use SQLite for tests — no Postgres required

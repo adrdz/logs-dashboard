@@ -85,13 +85,27 @@ pytest -v
 
 Tests use **SQLite + aiosqlite** in-memory — no running Postgres required. Each test runs in a rolled-back transaction for isolation.
 
-### Frontend (Vitest + React Testing Library)
+### Frontend (component tests + Storybook + Playwright)
+
+Component tests *are* the Storybook stories: `@storybook/addon-vitest` runs each
+story's `play` function in **real Chromium via Playwright**, so charts and the
+data grid render with genuine layout.
 
 ```bash
 cd frontend
 npm install
-npm test
+npm test                # runs every story's play test in Chromium
+npm run storybook       # browse the component catalog (http://localhost:6006)
 ```
+
+End-to-end view tests run against the **real backend** (start the stack first,
+e.g. `docker compose up`, so a seeded DB is available):
+
+```bash
+npm run test:e2e        # Playwright boots the frontend and drives the live app
+```
+
+See `frontend/README.md` for the full testing layout.
 
 ---
 
@@ -137,8 +151,8 @@ Postgres is the right choice for structured log data: native enums, `date_trunc`
 **Indexing strategy**
 Composite indexes on `(timestamp, severity)` and `(timestamp, source)` cover the two most common query patterns: range + severity filter, and range + source filter. Single-column indexes on `timestamp`, `severity`, and `source` cover simpler queries.
 
-**CRUD / analytics separation**
-All database logic lives in `app/crud.py` — routers are thin wiring. This makes the query layer independently testable without the HTTP surface.
+**Domain/feature-based structure**
+The backend is organised by feature domain rather than technical role. Each domain (`logs/`, `analytics/`) owns its models, schemas, repository (data access), service (business logic), and router. Shared infrastructure (database engine, settings, logging, the common `DbDep` dependency) lives in `app/core/`. The `app/api/v1.py` aggregator mounts both routers under `/api`, keeping a future version bump to a one-line change. Routers are thin — they delegate to the service layer, which in turn calls the repository.
 
 **Structured (JSON) logging**
 `python-json-logger` formats every log line as JSON to stdout. Every HTTP request gets a request ID (UUID), method, path, status code, and latency. The catch-all exception handler logs the full traceback without leaking it to clients.
@@ -148,17 +162,28 @@ All error responses follow `{ "detail": ... }` — the same shape FastAPI uses f
 
 ### Frontend
 
-**Next.js 14 App Router**
-App Router's server/client component split is the right model going forward, and it makes the routing and layout straightforward. All data-fetching pages are `"use client"` components wrapping TanStack Query hooks.
+See [frontend/README.md](frontend/README.md) for detailed architecture conventions.
 
-**Material UI + MUI X**
-MUI gives a polished, accessible component library without writing CSS. MUI X Data Grid has built-in server-side sort, filter, and pagination that map directly to the backend's query params. MUI X Charts provides `LineChart` and `BarChart` with a consistent API.
+**Next.js 14 App Router**
+App Router's server/client component split is the right model going forward. All data-fetching pages are `"use client"` components wrapping TanStack Query hooks.
+
+**Architecture: domain components + view-local sections**
+Shared components are organized into domain folders (`layout/`, `form/`, `info/`). Each domain's `index.ts` barrel exports with a prefix (`FormLogs`, `ChipSeverity`, `ChartTrend`). Large pages are decomposed into view-local `_components/` files named for their role: composites use `Section*`/`Panel*`; single widgets are named for what they are (`TableLogs`).
+
+**Styling: hybrid CSS tokens + BEM / MUI**
+A `styles/tokens.css` file defines CSS custom properties for colors, spacing, and severity scale, with a `[data-theme="dark"]` override block. Simple components (navbar, chips, metric cards) use plain BEM CSS consuming these tokens. Complex widgets (DataGrid, X-Charts, date-pickers) stay on MUI. The MUI theme palette mirrors the token values. A `ThemeToggle` in the navbar persists the user's preference and drives both the CSS tokens and the MUI theme simultaneously.
 
 **TanStack Query**
-Handles caching, deduplication, loading/error states, and cache invalidation after mutations. The `queryKey` hierarchy (`["logs", "list", params]`) ensures that creating or deleting a log invalidates the list without refetching unrelated queries.
+Handles caching, deduplication, loading/error states, and cache invalidation after mutations. The `queryKey` hierarchy (`["logs", "list", params]`) ensures creating or deleting a log invalidates the list without refetching unrelated queries.
 
 **Debounced search**
-The message search field debounces at 400 ms to avoid firing an API request on every keystroke.
+The message search field debounces at 400 ms via a shared `useDebounce` hook in `lib/hooks/`.
+
+**State management — why no Redux**
+The app has two kinds of state, each with the right tool: *server* state (logs, analytics) is owned by **TanStack Query** (caching, dedup, invalidation), and the small amount of *client/UI* state (filter values, pagination/sort, dashboard interval & group-by) is page-local `useState`; theme mode is a small context with an anti-FOUC script. None of this is shared across distant parts of the tree, so a global store like Redux/RTK Query was **deliberately not added** — it would introduce boilerplate without solving a real problem, and mirroring the server cache into a store would be a regression. If the app grew shared cross-page client state, Redux Toolkit (for UI state, keeping React Query for the server) would be the point to reconsider.
+
+**Testing — stories as the test layer**
+Rather than maintaining parallel RTL test files, each component's functional tests live in its Storybook story `play` functions, executed in real Chromium by `@storybook/addon-vitest` (Playwright). One artifact documents and tests the component, and charts/grids render with true layout. Playwright `e2e/` specs cover the full view flows end-to-end.
 
 ---
 
@@ -168,7 +193,8 @@ The message search field debounces at 400 ms to avoid firing an API request on e
 |---------|---------|
 | **CSV export** | `GET /api/logs/export` streams filtered logs as CSV. Frontend opens in a new tab. |
 | **Severity histogram** | `GET /api/analytics/histogram` + `SeverityHistogram` bar chart on the dashboard. |
-| **Tests** | Backend: pytest integration tests (SQLite, transaction isolation). Frontend: Vitest + RTL component tests. |
+| **Tests** | Backend: pytest integration tests (SQLite, transaction isolation). Frontend: component tests as Storybook stories run in real Chromium via Playwright (`@storybook/addon-vitest`), plus Playwright `e2e/` view flows. |
+| **Storybook** | Component catalog (`@storybook/nextjs-vite`) with a light/dark toolbar; stories double as the functional test suite. |
 | **Seed data** | `scripts/seed.py` generates 5 000 realistic entries across 6 sources and 30 days, weighted severity distribution. |
 
 ---
@@ -178,7 +204,6 @@ The message search field debounces at 400 ms to avoid firing an API request on e
 - **Authentication** — JWT-based auth for the API, Next.js middleware for route protection.
 - **Rate limiting** — `slowapi` on the backend to prevent abuse of the export endpoint.
 - **Log ingestion endpoint** — `POST /api/ingest/batch` accepting log arrays from services, with async worker queue.
-- **End-to-end tests** — Playwright tests covering the full create/edit/delete/dashboard flow.
 - **Real-time updates** — Server-Sent Events to push new log entries to the list page without polling.
 - **Log retention policy** — Background job to archive/delete logs older than a configurable threshold.
 
@@ -198,24 +223,37 @@ The message search field debounces at 400 ms to avoid firing an API request on e
 │   ├── alembic.ini
 │   ├── migrations/
 │   ├── app/
-│   │   ├── main.py           # FastAPI app, middleware, exception handlers
-│   │   ├── config.py         # pydantic-settings
-│   │   ├── database.py       # async engine, session factory
-│   │   ├── models.py         # SQLAlchemy Log model
-│   │   ├── schemas.py        # Pydantic v2 request/response schemas
-│   │   ├── crud.py           # all DB queries
-│   │   ├── logging_config.py # JSON logging + request middleware
-│   │   └── routers/
-│   │       ├── logs.py       # CRUD + export endpoints
-│   │       └── analytics.py  # summary, timeseries, histogram
+│   │   ├── main.py           # create_app() factory + CORS/logging middleware
+│   │   ├── core/
+│   │   │   ├── config.py     # pydantic-settings
+│   │   │   ├── database.py   # async engine, session factory, Base
+│   │   │   ├── logging.py    # JSON logging + request middleware
+│   │   │   └── dependencies.py  # shared DbDep
+│   │   ├── api/
+│   │   │   └── v1.py         # APIRouter(prefix="/api") aggregator
+│   │   ├── logs/
+│   │   │   ├── models.py     # Log ORM model + Severity enum
+│   │   │   ├── schemas.py    # LogCreate/Update/Read, PaginatedLogs, LogQueryParams
+│   │   │   ├── repository.py # data access (CRUD + CSV export)
+│   │   │   ├── service.py    # business logic (404 guard, pagination calc)
+│   │   │   └── router.py     # CRUD + export endpoints
+│   │   └── analytics/
+│   │       ├── schemas.py    # AnalyticsQueryParams + response schemas
+│   │       ├── service.py    # summary, timeseries, histogram queries
+│   │       └── router.py     # analytics endpoints
 │   ├── scripts/seed.py
 │   └── tests/
-└── frontend/
+└── frontend/                 # see frontend/README.md for conventions
     ├── Dockerfile
     ├── src/
-    │   ├── app/              # Next.js App Router pages
-    │   ├── components/       # FilterPanel, LogForm, charts, etc.
-    │   ├── lib/              # api client, TanStack Query hooks, types
-    │   └── tests/            # Vitest + RTL component tests
+    │   ├── styles/           # tokens.css (design tokens), globals.css
+    │   ├── app/              # Next.js App Router pages + providers.tsx
+    │   │   ├── dashboard/_components/  # SectionSummary/, SectionTrend.tsx
+    │   │   └── logs/_components/       # TableLogs.tsx
+    │   ├── components/
+    │   │   ├── layout/       # NavBar/, ThemeToggle/
+    │   │   ├── form/         # Logs/, Filters/
+    │   │   └── info/         # chip/Severity, chart/Trend+Histogram
+    │   └── lib/              # api, hooks (+ useDebounce), theme, types, constants
     └── package.json
 ```

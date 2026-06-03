@@ -1,0 +1,40 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.chip--small {
+  height: 24px;
+  padding: 0 var(--space-sm);
+  font-size: 0.75rem;
+}
+
+.chip--medium {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 0.8125rem;
+}
+
+/* Severity modifiers — colors mirror SEVERITY_COLORS / tokens.css */
+.chip--debug {
+  background-color: var(--color-severity-debug);
+}
+.chip--info {
+  background-color: var(--color-severity-info);
+}
+.chip--warning {
+  background-color: var(--color-severity-warning);
+}
+.chip--error {
+  background-color: var(--color-severity-error);
+}
+.chip--critical {
+  background-color: var(--color-severity-critical);
+}

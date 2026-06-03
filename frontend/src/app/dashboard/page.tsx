@@ -1,68 +1,48 @@
 "use client";
 
+//#region Imports
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
-import Box from "@mui/material/Box";
 import Divider from "@mui/material/Divider";
-import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
 import Typography from "@mui/material/Typography";
-import FilterPanel, { type FilterValues } from "@/components/FilterPanel";
-import SummaryCards from "@/components/SummaryCards";
-import TrendChart from "@/components/TrendChart";
-import SeverityHistogram from "@/components/SeverityHistogram";
-import { useSummary, useTimeseries, useHistogram } from "@/lib/queries";
+import { FormFilters, type FilterValues } from "@/components/form";
+import { ChartHistogram } from "@/components/info/chart";
+import { SectionSummary } from "./_components/SectionSummary";
+import SectionTrend from "./_components/SectionTrend";
+import { useSummary, useTimeseries, useHistogram } from "@/lib/hooks";
+import { SOURCES } from "@/lib/constants";
 import type { AnalyticsQueryParams } from "@/lib/types";
-
-const SOURCES = [
-  "auth-service", "payments-api", "user-service",
-  "notification-worker", "api-gateway", "scheduler",
-];
+//#endregion
 
 export default function DashboardPage() {
+  //#region State
   const [filters, setFilters] = useState<FilterValues>({});
   const [interval, setInterval] = useState<"hour" | "day" | "week" | "month">("day");
   const [groupBy, setGroupBy] = useState<"severity" | "source">("severity");
+  //#endregion
 
+  //#region Derived
   const analyticsParams: AnalyticsQueryParams = {
     ...filters,
     interval,
     group_by: groupBy,
   };
 
-  const {
-    data: summary,
-    isLoading: summaryLoading,
-    isError: summaryError,
-  } = useSummary(analyticsParams);
-
-  const {
-    data: timeseries,
-    isLoading: timeseriesLoading,
-    isError: timeseriesError,
-  } = useTimeseries(analyticsParams);
-
-  const {
-    data: histogram,
-    isLoading: histogramLoading,
-    isError: histogramError,
-  } = useHistogram(analyticsParams);
+  const { data: summary, isLoading: summaryLoading, isError: summaryError } = useSummary(analyticsParams);
+  const { data: timeseries, isLoading: timeseriesLoading, isError: timeseriesError } = useTimeseries(analyticsParams);
+  const { data: histogram, isLoading: histogramLoading, isError: histogramError } = useHistogram(analyticsParams);
 
   const hasError = summaryError || timeseriesError || histogramError;
+  //#endregion
 
+  //#region Render
   return (
-    <Box>
+    <div>
       <Typography variant="h5" fontWeight={700} sx={{ mb: 2 }}>
         Dashboard
       </Typography>
 
-      <FilterPanel
-        values={filters}
-        onChange={setFilters}
-        sources={SOURCES}
-      />
+      <FormFilters values={filters} onChange={setFilters} sources={SOURCES} />
 
       {hasError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -70,38 +50,21 @@ export default function DashboardPage() {
         </Alert>
       )}
 
-      <SummaryCards summary={summary} isLoading={summaryLoading} />
+      <SectionSummary summary={summary} isLoading={summaryLoading} />
 
       <Divider sx={{ my: 3 }} />
 
-      {/* Interval selector for charts */}
-      <Box sx={{ display: "flex", gap: 2, mb: 3, alignItems: "center" }}>
-        <Typography variant="subtitle2" color="text.secondary">
-          Chart interval:
-        </Typography>
-        <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel>Interval</InputLabel>
-          <Select
-            value={interval}
-            label="Interval"
-            onChange={(e) => setInterval(e.target.value as typeof interval)}
-          >
-            <MenuItem value="hour">Hour</MenuItem>
-            <MenuItem value="day">Day</MenuItem>
-            <MenuItem value="week">Week</MenuItem>
-            <MenuItem value="month">Month</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      <TrendChart
+      <SectionTrend
         data={timeseries}
         isLoading={timeseriesLoading}
+        interval={interval}
+        onIntervalChange={setInterval}
         groupBy={groupBy}
         onGroupByChange={setGroupBy}
       />
 
-      <SeverityHistogram data={histogram} isLoading={histogramLoading} />
-    </Box>
+      <ChartHistogram data={histogram} isLoading={histogramLoading} />
+    </div>
   );
+  //#endregion
 }

@@ -1,5 +1,6 @@
 "use client";
 
+//#region Imports
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -21,16 +22,20 @@ import EditIcon from "@mui/icons-material/Edit";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
-import LogForm from "@/components/LogForm";
-import SeverityChip from "@/components/SeverityChip";
-import { useDeleteLog, useLog, useUpdateLog } from "@/lib/queries";
+import { FormLogs } from "@/components/form";
+import { ChipSeverity } from "@/components/info/chip";
+import { useDeleteLog, useLog, useUpdateLog } from "@/lib/hooks";
 import type { LogCreate } from "@/lib/types";
+//#endregion
 
+//#region Types
 interface Props {
   params: { id: string };
 }
+//#endregion
 
 export default function LogDetailPage({ params }: Props) {
+  //#region State
   const id = parseInt(params.id, 10);
   const router = useRouter();
   const { data: log, isLoading, isError } = useLog(id);
@@ -40,7 +45,9 @@ export default function LogDetailPage({ params }: Props) {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  //#endregion
 
+  //#region Handlers
   const handleUpdate = async (data: LogCreate) => {
     setError(null);
     try {
@@ -60,7 +67,9 @@ export default function LogDetailPage({ params }: Props) {
       setConfirmDelete(false);
     }
   };
+  //#endregion
 
+  //#region Render
   if (isLoading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 8 }}>
@@ -94,11 +103,7 @@ export default function LogDetailPage({ params }: Props) {
           Log #{id}
         </Typography>
         <Stack direction="row" spacing={1}>
-          <Button
-            variant="outlined"
-            startIcon={<EditIcon />}
-            onClick={() => setEditing(!editing)}
-          >
+          <Button variant="outlined" startIcon={<EditIcon />} onClick={() => setEditing(!editing)}>
             {editing ? "Cancel" : "Edit"}
           </Button>
           <Button
@@ -126,7 +131,7 @@ export default function LogDetailPage({ params }: Props) {
               <Typography variant="body2" color="text.secondary" sx={{ width: 120 }}>
                 Severity
               </Typography>
-              <SeverityChip severity={log.severity} />
+              <ChipSeverity severity={log.severity} />
             </Box>
             <Divider />
             <Box sx={{ display: "flex", gap: 2 }}>
@@ -178,16 +183,10 @@ export default function LogDetailPage({ params }: Props) {
           <Typography variant="h6" sx={{ mb: 2 }}>
             Edit Log
           </Typography>
-          <LogForm
-            initial={log}
-            onSubmit={handleUpdate}
-            isLoading={isUpdating}
-            submitLabel="Save Changes"
-          />
+          <FormLogs initial={log} onSubmit={handleUpdate} isLoading={isUpdating} submitLabel="Save Changes" />
         </Paper>
       )}
 
-      {/* Delete confirmation dialog */}
       <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <DialogTitle>Delete Log #{id}?</DialogTitle>
         <DialogContent>
@@ -204,4 +203,5 @@ export default function LogDetailPage({ params }: Props) {
       </Dialog>
     </Box>
   );
+  //#endregion
 }

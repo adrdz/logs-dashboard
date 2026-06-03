@@ -1,5 +1,6 @@
 "use client";
 
+//#region Imports
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -8,15 +9,19 @@ import Link from "@mui/material/Link";
 import Typography from "@mui/material/Typography";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
-import LogForm from "@/components/LogForm";
-import { useCreateLog } from "@/lib/queries";
+import { FormLogs } from "@/components/form";
+import { useCreateLog } from "@/lib/hooks";
 import type { LogCreate } from "@/lib/types";
+//#endregion
 
 export default function NewLogPage() {
+  //#region State
   const router = useRouter();
   const { mutateAsync, isPending } = useCreateLog();
   const [error, setError] = useState<string | null>(null);
+  //#endregion
 
+  //#region Handlers
   const handleSubmit = async (data: LogCreate) => {
     setError(null);
     try {
@@ -26,7 +31,9 @@ export default function NewLogPage() {
       setError((err as Error).message);
     }
   };
+  //#endregion
 
+  //#region Render
   return (
     <Box>
       <Breadcrumbs sx={{ mb: 2 }}>
@@ -46,7 +53,8 @@ export default function NewLogPage() {
         </Alert>
       )}
 
-      <LogForm onSubmit={handleSubmit} isLoading={isPending} submitLabel="Create Log" />
+      <FormLogs onSubmit={handleSubmit} isLoading={isPending} submitLabel="Create Log" />
     </Box>
   );
+  //#endregion
 }

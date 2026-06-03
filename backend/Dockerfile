@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy deps first for layer caching
 COPY pyproject.toml .
-RUN pip install --no-cache-dir -e ".[dev]"
+RUN pip install --no-cache-dir --upgrade pip setuptools && \
+    pip install --no-cache-dir ".[dev]"
 
 # Copy application code
 COPY . .

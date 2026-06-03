@@ -59,3 +59,10 @@ htmlcov/
 .pytest_cache/
 coverage/
 *.lcov
+
+# Storybook / Playwright
+storybook-static/
+playwright-report/
+test-results/
+blob-report/
+.playwright/

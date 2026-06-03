@@ -1,0 +1,47 @@
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.summary__card {
+  flex: 0 0 auto;
+  min-width: 130px;
+  padding: 12px var(--space-md);
+  background-color: var(--bg-primary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+
+  /* accent bar on the left — color supplied via inline custom property */
+  border-left: 4px solid var(--accent, #455a64);
+}
+
+.summary__count {
+  margin: 0 0 4px;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent, #455a64);
+}
+
+.summary__label {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Skeleton placeholder rows */
+.summary__skeleton {
+  height: 88px;
+  min-width: 140px;
+  background-color: var(--color-border);
+  border-radius: var(--radius-sm);
+  animation: summary-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes summary-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}

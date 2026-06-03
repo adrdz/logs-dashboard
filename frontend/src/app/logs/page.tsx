@@ -1,42 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
+//#region Imports
+import { useState } from "react";
+import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
-import Alert from "@mui/material/Alert";
 import DownloadIcon from "@mui/icons-material/Download";
 import AddIcon from "@mui/icons-material/Add";
-import { DataGrid, type GridColDef, type GridSortModel } from "@mui/x-data-grid";
+import { type GridSortModel } from "@mui/x-data-grid";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import dayjs from "dayjs";
-import FilterPanel, { type FilterValues } from "@/components/FilterPanel";
-import SeverityChip from "@/components/SeverityChip";
-import { useLogs } from "@/lib/queries";
+import { FormFilters, type FilterValues } from "@/components/form";
+import TableLogs from "./_components/TableLogs";
+import { useLogs, useDebounce } from "@/lib/hooks";
 import { logsApi } from "@/lib/api";
-import type { LogQueryParams, Severity } from "@/lib/types";
-
-const SOURCES = [
-  "auth-service", "payments-api", "user-service",
-  "notification-worker", "api-gateway", "scheduler",
-];
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(timer);
-  }, [value, delay]);
-  return debounced;
-}
+import { SOURCES } from "@/lib/constants";
+import type { LogQueryParams } from "@/lib/types";
+//#endregion
 
 export default function LogsPage() {
+  //#region State
   const router = useRouter();
   const [filters, setFilters] = useState<FilterValues>({});
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
   const [sortModel, setSortModel] = useState<GridSortModel>([{ field: "timestamp", sort: "desc" }]);
+  //#endregion
 
+  //#region Derived
   const debouncedSearch = useDebounce(filters.search, 400);
 
   const queryParams: LogQueryParams = {
@@ -49,29 +40,16 @@ export default function LogsPage() {
   };
 
   const { data, isLoading, isError, error } = useLogs(queryParams);
+  //#endregion
 
-  const columns: GridColDef[] = [
-    {
-      field: "timestamp",
-      headerName: "Timestamp",
-      width: 200,
-      renderCell: (params) => dayjs(params.value as string).format("YYYY-MM-DD HH:mm:ss"),
-    },
-    {
-      field: "severity",
-      headerName: "Severity",
-      width: 130,
-      renderCell: (params) => <SeverityChip severity={params.value as Severity} />,
-    },
-    { field: "source", headerName: "Source", width: 170 },
-    { field: "message", headerName: "Message", flex: 1, minWidth: 300 },
-  ];
-
+  //#region Handlers
   const handleExport = () => {
     const url = logsApi.exportCsvUrl(queryParams);
     window.open(url, "_blank");
   };
+  //#endregion
 
+  //#region Render
   return (
     <Box>
       <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
@@ -79,32 +57,16 @@ export default function LogsPage() {
           Logs
         </Typography>
         <Box sx={{ display: "flex", gap: 1 }}>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExport}
-            size="small"
-          >
+          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleExport} size="small">
             Export CSV
           </Button>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            component={Link}
-            href="/logs/new"
-            size="small"
-          >
+          <Button variant="contained" startIcon={<AddIcon />} component={Link} href="/logs/new" size="small">
             New Log
           </Button>
         </Box>
       </Box>
 
-      <FilterPanel
-        values={filters}
-        onChange={setFilters}
-        sources={SOURCES}
-        showSearch
-      />
+      <FormFilters values={filters} onChange={setFilters} sources={SOURCES} showSearch />
 
       {isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -112,31 +74,17 @@ export default function LogsPage() {
         </Alert>
       )}
 
-      <DataGrid
+      <TableLogs
         rows={data?.items ?? []}
-        columns={columns}
         rowCount={data?.total ?? 0}
-        loading={isLoading}
-        paginationMode="server"
+        isLoading={isLoading}
         paginationModel={paginationModel}
         onPaginationModelChange={setPaginationModel}
-        pageSizeOptions={[25, 50, 100]}
-        sortingMode="server"
         sortModel={sortModel}
         onSortModelChange={setSortModel}
-        onRowClick={(params) => router.push(`/logs/${params.id}`)}
-        autoHeight
-        sx={{
-          cursor: "pointer",
-          "& .MuiDataGrid-row:hover": { backgroundColor: "action.hover" },
-        }}
-        slotProps={{
-          loadingOverlay: {
-            variant: "skeleton",
-            noRowsVariant: "skeleton",
-          },
-        }}
+        onRowClick={(id) => router.push(`/logs/${id}`)}
       />
     </Box>
   );
+  //#endregion
 }

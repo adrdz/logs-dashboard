@@ -9,6 +9,7 @@ from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 revision: str = "0001"
 down_revision: Union[str, None] = None
@@ -17,7 +18,25 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.execute("CREATE TYPE severity_enum AS ENUM ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')")
+    op.execute("""
+        DO $$ BEGIN
+            CREATE TYPE severity_enum AS ENUM ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL');
+        EXCEPTION WHEN duplicate_object THEN NULL;
+        END $$;
+    """)
+
+    # The type is created by the idempotent DO block above; tell SQLAlchemy not to
+    # auto-emit a second CREATE TYPE during op.create_table (which would raise
+    # DuplicateObjectError since that statement is not guarded).
+    severity_enum = postgresql.ENUM(
+        "DEBUG",
+        "INFO",
+        "WARNING",
+        "ERROR",
+        "CRITICAL",
+        name="severity_enum",
+        create_type=False,
+    )
 
     op.create_table(
         "logs",
@@ -31,7 +50,7 @@ def upgrade() -> None:
         sa.Column("message", sa.Text(), nullable=False),
         sa.Column(
             "severity",
-            sa.Enum("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", name="severity_enum"),
+            severity_enum,
             nullable=False,
         ),
         sa.Column("source", sa.String(length=255), nullable=False),

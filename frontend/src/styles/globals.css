@@ -1,0 +1,19 @@
+@import "./tokens.css";
+
+/**
+ * Global, token-driven base styles. Component-specific styling is colocated
+ * with each component as a BEM stylesheet; this file only covers the document
+ * shell and the main content wrapper. MUI's <CssBaseline> still handles the
+ * cross-browser reset.
+ */
+
+body {
+  margin: 0;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.app-main {
+  min-height: calc(100vh - 64px);
+  padding: var(--space-lg);
+}
