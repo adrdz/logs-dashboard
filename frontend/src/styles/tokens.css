@@ -51,7 +51,7 @@
 
   /* Layout */
   --sidebar-width: 198px;            /* expanded, labels visible */
-  --sidebar-width-collapsed: 64px;   /* icon rail */
+  --sidebar-width-collapsed: 61px;   /* icon rail */
 }
 
 [data-theme="dark"] {
