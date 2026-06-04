@@ -9,7 +9,6 @@
   padding: 0 var(--space-lg);
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  border-bottom: 1px solid var(--color-border);
 }
 
 .header__brand {
@@ -33,6 +32,10 @@
 }
 
 @media (max-width: 767px) {
+  .header {
+    border-bottom: 1px solid var(--color-border);
+  }
+
   .header__theme-desktop {
     display: none;
   }

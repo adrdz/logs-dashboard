@@ -166,7 +166,7 @@ export default function LogDetailPage({ params }: Props) {
                   fontSize: "0.9rem",
                   whiteSpace: "pre-wrap",
                   wordBreak: "break-word",
-                  backgroundColor: "grey.50",
+                  backgroundColor: "background.paper",
                   p: 2,
                   borderRadius: 1,
                 }}

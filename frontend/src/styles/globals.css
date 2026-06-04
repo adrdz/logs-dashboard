@@ -16,12 +16,18 @@ body {
 .app-main {
   min-height: calc(100vh - 64px);
   padding: var(--space-lg);
+  transition: margin-left 0.2s ease;
 }
 
-/* Offset the main content for the fixed desktop sidebar (240px). On mobile the
-   sidebar collapses into the header menu, so no offset is applied. */
+/* Offset the main content for the fixed desktop sidebar, which is a collapsed
+   icon rail by default and expands on hover — the content is pushed right in sync.
+   On mobile the sidebar collapses into the header menu, so no offset is applied. */
 @media (min-width: 768px) {
   .app-main {
-    margin-left: 240px;
+    margin-left: var(--sidebar-width-collapsed);
+  }
+
+  .sidebar:hover ~ .app-main {
+    margin-left: var(--sidebar-width);
   }
 }

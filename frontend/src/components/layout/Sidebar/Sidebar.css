@@ -3,12 +3,17 @@
   top: 64px;
   left: 0;
   bottom: 0;
-  width: 240px;
+  width: var(--sidebar-width-collapsed);
   padding: var(--space-md) var(--space-sm);
   background-color: var(--bg-primary);
-  border-right: 1px solid var(--color-border);
   overflow-y: auto;
   z-index: 1000;
+  transition: width 0.2s ease;
+}
+
+/* Expand to reveal labels while the pointer is over the rail. */
+.sidebar:hover {
+  width: var(--sidebar-width);
 }
 
 .sidebar__nav {
@@ -27,6 +32,8 @@
   font-size: 0.9rem;
   font-weight: 600;
   text-decoration: none;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .sidebar__link:hover {
@@ -41,6 +48,44 @@
 
 .sidebar__icon {
   flex-shrink: 0;
+}
+
+/* Labels are hidden in the collapsed rail and fade in once it expands. Kept in
+   the DOM (not display:none) so links retain their accessible names. */
+.sidebar__label {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar:hover .sidebar__label {
+  opacity: 1;
+}
+
+/* Concave fillet at the navbar/sidebar intersection so the content area's
+   top-left corner reads as rounded rather than square. Uses position: fixed
+   (not absolute) because the sidebar's overflow-y: auto forces overflow-x to
+   compute as auto, which would clip a protruding absolute pseudo-element. */
+@media (min-width: 768px) {
+  .sidebar::after {
+    content: "";
+    position: fixed;
+    top: 64px; /* header height */
+    left: var(--sidebar-width-collapsed); /* tracks the sidebar's right edge */
+    width: 16px;
+    height: 16px;
+    background: radial-gradient(
+      circle at bottom right,
+      transparent 16px,
+      var(--bg-primary) 16px
+    );
+    pointer-events: none;
+    z-index: 1100; /* above content, below header (1200) */
+    transition: left 0.2s ease;
+  }
+
+  .sidebar:hover::after {
+    left: var(--sidebar-width);
+  }
 }
 
 /* Hidden on mobile — navigation collapses into the header hamburger menu. */

@@ -1,6 +1,10 @@
 .mobile-menu {
   position: fixed;
-  inset: 0;
+  /* Start below the sticky header so the navbar (with the X button) stays visible. */
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 1300;
   /* Keep mounted (so the slide transition runs) but inert when closed. */
   visibility: hidden;
@@ -18,8 +22,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  /* Clear the sticky header so the close (X) button stays visible/clickable. */
-  padding: calc(64px + var(--space-lg)) var(--space-lg) var(--space-lg);
+  padding: var(--space-lg);
   background-color: var(--bg-primary);
   /* Slides in from the right. */
   transform: translateX(100%);

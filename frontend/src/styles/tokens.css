@@ -48,6 +48,10 @@
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-pill: 16px;
+
+  /* Layout */
+  --sidebar-width: 198px;            /* expanded, labels visible */
+  --sidebar-width-collapsed: 64px;   /* icon rail */
 }
 
 [data-theme="dark"] {
