@@ -22,7 +22,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import NextLink from "next/link";
 import { useRouter } from "next/navigation";
 import dayjs from "dayjs";
-import { FormLogs } from "@/components/form";
+import FormLogs from "../_components/FormLogs";
 import { ChipSeverity } from "@/components/info/chip";
 import { useDeleteLog, useLog, useUpdateLog } from "@/lib/hooks";
 import type { LogCreate } from "@/lib/types";

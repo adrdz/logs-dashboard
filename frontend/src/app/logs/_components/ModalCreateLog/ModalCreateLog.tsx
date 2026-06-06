@@ -3,10 +3,10 @@
 //#region Imports
 import { useState } from "react";
 import Alert from "@mui/material/Alert";
-import { FormLogs } from "@/components/form";
+import { ModalBase } from "@/components/modal";
 import { useCreateLog } from "@/lib/hooks";
 import type { Log, LogCreate } from "@/lib/types";
-import { ModalBase } from "../ModalBase";
+import FormLogs from "../FormLogs";
 //#endregion
 
 //#region Types

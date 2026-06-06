@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, screen, userEvent, within } from "storybook/test";
 import { SOURCES } from "@/lib/constants";
-import Logs from "./Logs";
+import FormLogs from "./FormLogs";
 
 const meta = {
-  title: "Form/Logs",
-  component: Logs,
+  title: "Logs/FormLogs",
+  component: FormLogs,
   // `onSubmit` is reset between stories by the test addon.
   args: { onSubmit: fn() },
   parameters: { layout: "padded" },
-} satisfies Meta<typeof Logs>;
+} satisfies Meta<typeof FormLogs>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

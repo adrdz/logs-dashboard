@@ -1,11 +1,11 @@
 import type { Meta, StoryObj } from "@storybook/nextjs-vite";
 import { expect, fn, userEvent, within } from "storybook/test";
 import Button from "@mui/material/Button";
-import ModalBase from "./ModalBase";
+import Base from "./Base";
 
 const meta = {
-  title: "Modal/ModalBase",
-  component: ModalBase,
+  title: "Modal/Base",
+  component: Base,
   args: {
     open: true,
     onClose: fn(),
@@ -13,7 +13,7 @@ const meta = {
     children: "Modal body content.",
   },
   parameters: { layout: "fullscreen" },
-} satisfies Meta<typeof ModalBase>;
+} satisfies Meta<typeof Base>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

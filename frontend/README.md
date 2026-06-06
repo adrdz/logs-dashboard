@@ -29,12 +29,14 @@ src/
 │   └── logs/
 │       ├── page.tsx
 │       ├── _components/
-│       │   └── TableLogs/        # single widget: DataGrid
+│       │   ├── TableLogs/       # single widget: DataGrid
+│       │   ├── FormLogs/        # create/edit log form (shared by the two log views)
+│       │   └── ModalCreateLog/  # create-log modal hosting FormLogs
 │       └── [id]/page.tsx
 ├── components/
 │   ├── layout/             # app shell / nav — AppShell/, Header/, Sidebar/, MobileMenu/, ThemeToggle/
-│   ├── modal/              # ModalBase/, ModalCreateLog/
-│   ├── form/               # input-collection components — Logs/, Filters/
+│   ├── modal/              # reusable modal shell — Base/
+│   ├── form/               # input-collection components — Filters/
 │   └── info/               # display / data-visualization components
 │       ├── chip/
 │       │   └── Severity/   # ChipSeverity
@@ -60,7 +62,6 @@ names them with the domain prefix so call-sites are unambiguous:
 
 ```ts
 // components/form/index.ts
-export { default as FormLogs }    from "./Logs";
 export { default as FormFilters } from "./Filters";
 export type { FilterValues }      from "./Filters";
 
@@ -75,8 +76,8 @@ export { default as ChartHistogram } from "./Histogram";
 **Never repeat the parent folder name in the filename.**
 
 ```
-✓  form/Logs/Logs.tsx        → exported as FormLogs
-✗  form/Logs/FormLogs.tsx    ← stutter — redundant
+✓  form/Filters/Filters.tsx        → exported as FormFilters
+✗  form/Filters/FormFilters.tsx    ← stutter — redundant
 ```
 
 ### Per-component folders
@@ -87,14 +88,10 @@ folder gives context; the filename stays short; the barrel adds the prefix.
 
 ```
 form/
-├── Logs/
-│   ├── Logs.tsx
-│   ├── Logs.stories.tsx
-│   └── index.ts          # export { default as FormLogs } from "./Logs"
 └── Filters/
     ├── Filters.tsx
     ├── Filters.stories.tsx
-    └── index.ts
+    └── index.ts          # export { default as FormFilters } from "./Filters"
 
 info/chart/
 ├── Trend/
@@ -118,12 +115,22 @@ after what they are:
 
 ```
 app/logs/_components/
-└── TableLogs/               ← single widget (DataGrid), named for what it is
+├── TableLogs/               ← single widget (DataGrid), named for what it is
+├── FormLogs/                ← create/edit log form, shared by both log views
+└── ModalCreateLog/          ← create-log modal (wraps the reusable modal Base)
 
 app/_components/             ← Summary page ("/") view-local components
 ├── SectionSummary/          ← composite: summary cards block
 └── SectionTrend/            ← composite: interval controls + trend chart
 ```
+
+View-local components live in their view's `_components/` rather than the shared
+`components/` taxonomy. Placement follows **specificity, not type**: a "form" or
+"modal" tied to one view (`FormLogs`, `ModalCreateLog`) belongs in that view's
+`_components/`; only genuinely reusable pieces (the modal `Base`, `FormFilters`)
+stay under `components/`. In `_components/` the filename carries the full
+descriptive name (`FormLogs.tsx`, `ModalCreateLog.tsx`) — the short-filename +
+barrel-prefix rule only governs the `components/` taxonomy.
 
 ---
 
@@ -234,10 +241,11 @@ const { mode, toggle } = useThemeMode();
 
 ## Forms and filters
 
-`FormLogs` — create/edit a log entry (MUI TextField, Select, DateTimePicker). On
-the Logs List it is hosted in `ModalCreateLog` (built on the reusable
-`ModalBase`); it is also reused for inline editing on the log detail page.  
-`FormFilters` — filter panel used on `/logs` and `/` (Summary). The severity
+`FormLogs` — create/edit a log entry (MUI TextField, Select, DateTimePicker).
+View-local to the logs route (`app/logs/_components/FormLogs/`). On the Logs List
+it is hosted in `ModalCreateLog` (built on the reusable modal `Base` from
+`components/modal/`); it is also reused for inline editing on the log detail page.  
+`FormFilters` — reusable filter panel used on `/logs` and `/` (Summary). The severity
 control is opt-in via `showSeverity` (shown on the Logs List, hidden on Summary).
 Exports the `FilterValues` type alongside the component:
 

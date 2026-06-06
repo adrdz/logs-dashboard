@@ -33,7 +33,7 @@ interface FormErrors {
 }
 //#endregion
 
-export default function Logs({
+export default function FormLogs({
   initial,
   onSubmit,
   submitLabel = "Save",

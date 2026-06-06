@@ -3,7 +3,7 @@ import { expect, fn, within } from "storybook/test";
 import ModalCreateLog from "./ModalCreateLog";
 
 const meta = {
-  title: "Modal/ModalCreateLog",
+  title: "Logs/ModalCreateLog",
   component: ModalCreateLog,
   args: { open: true, onClose: fn() },
   parameters: { layout: "fullscreen" },

@@ -26,7 +26,7 @@ interface Props {
  * button, scrollable content, and an optional actions footer. Inherits the
  * active theme's `background.paper`, so it renders correctly in dark mode.
  */
-export default function ModalBase({
+export default function Base({
   open,
   onClose,
   title,
